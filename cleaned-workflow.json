@@ -1,0 +1,1054 @@
+{
+  "name": "housing",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}\n",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1660,
+        1700
+      ],
+      "id": "39d978b0-6687-45cd-8276-5247d7cadaa8",
+      "name": "Telegram",
+      "webhookId": "WEBHOOK_ID_PLACEHOLDER",
+      "credentials": {
+        "telegramApi": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "YOUR_TELEGRAM_BOT_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/azadielshan~my-actor/run-sync-get-dataset-items?token=YOUR_APIFY_TOKEN",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "YOUR_APIFY_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"start_urls\": [\n    {\n      \"url\": \"https://apify.com\",\n      \"method\": \"GET\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -440,
+        1160
+      ],
+      "id": "3d7004cf-bebe-4c85-a0db-2c247ffe49de",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "YOUR_WORKSPACE_ID",
+        "projectId": "YOUR_PROJECT_ID",
+        "table": "YOUR_TABLE_ID",
+        "options": {
+          "sort": {
+            "property": [
+              {
+                "field": "CreatedAt",
+                "direction": "desc"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        -460,
+        1700
+      ],
+      "id": "e8eb0dc8-b2e4-45c9-af22-627632e48049",
+      "name": "NocoDB",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://app.nocodb.com/api/v2/meta/tables/{{ $json.table_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "nocoDbApiToken",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -20,
+        1700
+      ],
+      "id": "e7c7a0d0-d9b9-49f9-bce0-6a5064380344",
+      "name": "HTTP Request",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a91d1ced-132e-4840-ad74-2dabf0b6d623",
+              "name": "columns",
+              "value": "={{ $json.columns.replace(/\\n/g, \"\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        420,
+        1700
+      ],
+      "id": "4e453f40-9f47-4c41-bbb7-f2a6195e9490",
+      "name": "Clean data"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3a14b5bf-21d3-4772-922f-7ccf08ea2845",
+              "name": "columns",
+              "value": "={{ $json.columns.map(item => item.title).toString() }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        200,
+        1700
+      ],
+      "id": "876624bc-9862-4fb8-b8bc-8cca0787e711",
+      "name": "extract columns"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ca2b76a-06c9-48b1-bc0f-91c3426e2694",
+              "name": "table_id",
+              "value": "YOUR_TABLE_ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        1700
+      ],
+      "id": "196a17b8-a55f-4eb8-8393-245f980e054f",
+      "name": "Table ID",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini-2025-04-14",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini-2025-04-14"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        600,
+        1920
+      ],
+      "id": "e790886d-6dd1-4784-83aa-a5e81a2f3e8a",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.chat.id }}\n\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        760,
+        1920
+      ],
+      "id": "dfc86f6f-4a14-4faf-b2d6-72614ec559eb",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "getAll",
+        "workspaceId": "YOUR_WORKSPACE_ID",
+        "projectId": "YOUR_PROJECT_ID",
+        "table": "YOUR_TABLE_ID",
+        "options": {
+          "where": "={{ $fromAI(\n  'filter_formula',\n  \"Create a NocoDB filter formula for housing listings. Example:(rooms,eq,2)~and(location,like,Mitte)~and(price,lt,1000). Supported operators: eq (equals), lt (less than), gt (greater than), lte (less than or equal), gte (greater than or equal), like (contains). Use these available columns: url, location, price, rooms, area, wbs_required, source, date_scraped, status, description, images, date_posted. Only respond with the formula string and nothing else. The price column is numeric — always use lt/gt instead of text comparisons.\"\n) }}"
+        }
+      },
+      "type": "n8n-nodes-base.nocoDbTool",
+      "typeVersion": 3,
+      "position": [
+        880,
+        1920
+      ],
+      "id": "6447e22e-3321-4b6d-a099-f68902e42808",
+      "name": "NocoDB1",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "YOUR_WORKSPACE_ID",
+        "projectId": "YOUR_PROJECT_ID",
+        "table": "YOUR_TABLE_ID",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        220,
+        1160
+      ],
+      "id": "1810993c-63b6-49e6-8b22-fa4bb0e887b6",
+      "name": "NocoDB2",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeItemsSeenInPreviousExecutions",
+        "dedupeValue": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        0,
+        1160
+      ],
+      "id": "60e12167-cc5e-4421-a6e5-8302f35ab64d",
+      "name": "Remove Duplicates"
+    },
+    {
+      "parameters": {
+        "content": "## AI-Powered Housing Agent via Telegram\nWhen a user sends a message to my Telegram bot, this flow:\n– Receives the message\n– Extracts the NocoDB table schema\n– Passes everything to a custom AI agent\n– The AI interprets the user's intent, generates a filter, and finds matching listings\n– Finally, it responds beautifully and supportively via Telegram",
+        "height": 660,
+        "width": 2900,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -920,
+        1480
+      ],
+      "id": "f333e820-27e9-4405-9b74-6e5b7f9e60bc",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -840,
+        1700
+      ],
+      "id": "2842d8f9-8110-4f7b-9239-b50335c858a9",
+      "name": "Telegram Trigger",
+      "webhookId": "WEBHOOK_ID_PLACEHOLDER",
+      "credentials": {
+        "telegramApi": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "YOUR_TELEGRAM_BOT_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a05071cd-0dab-4e3d-bf7f-9e291787a763",
+              "name": "chatInput",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "181761af-a98e-4545-8100-2c78ffbae581",
+              "name": "chatId",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            },
+            {
+              "id": "2a06d708-8e26-4b70-9e40-8bc4afee9868",
+              "name": "sessionId",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -640,
+        1700
+      ],
+      "id": "bca6048b-a5cd-47ff-b3f8-32938979e4ff",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -660,
+        1160
+      ],
+      "id": "0afc8dea-d2ab-44f1-a9e0-c404652306b9",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## Daily Scraper & Cleaner – Gewobag\n**This block runs on a daily schedule.\nIt scrapes apartment listings from Gewobag via Apify, removes already-processed URLs, and writes only the fresh listings to the NocoDB database.\n\n",
+        "height": 320,
+        "width": 1280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -780,
+        1040
+      ],
+      "id": "e4247c52-6420-4210-bb48-99d970264661",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9fc36c42-71af-4ad1-b72a-6b514bf34b40",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a4f4f520-f210-494a-a028-587c620e3e42",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "0ff120ae-c114-4502-8e96-4cdccfe4969c",
+              "name": "rooms",
+              "value": "={{ $json.rooms }}",
+              "type": "string"
+            },
+            {
+              "id": "3588d06b-1014-46a4-a79b-984d1756495c",
+              "name": "area",
+              "value": "={{ $json.area.replace(',', '.') }}\n\n",
+              "type": "number"
+            },
+            {
+              "id": "6b54e0ee-e6f4-4f0c-aba5-71a68cc01067",
+              "name": "price",
+              "value": "={{ \n  typeof $json.price === 'string' \n    ? Number($json.price.replace(/\\./g, '').replace(',', '.').replace(/[^\\d.]/g, '')) \n    : $json.price \n}}\n",
+              "type": "number"
+            },
+            {
+              "id": "9da174ab-6a72-4a4c-8951-08e278cffa7e",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "d8ad55a1-7d24-442a-9ae2-cc3f5e657766",
+              "name": "source",
+              "value": "Gewobag",
+              "type": "string"
+            },
+            {
+              "id": "fa424af8-18e4-4d93-9fef-2206e8e33c5d",
+              "name": "date_scraped",
+              "value": "={{ new Date().toISOString().split('T')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "3c9f83e8-d7c9-4c53-aae9-6cdaec52c0a9",
+              "name": "status",
+              "value": "Available",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -220,
+        1160
+      ],
+      "id": "1919f0b8-aa3d-4dd0-9523-892695c889d9",
+      "name": "Data map"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/actor-tasks/YOUR_ACTOR_TASK_ID/runs?token=YOUR_APIFY_TOKEN",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "YOUR_APIFY_TOKEN"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"memory\": 512,\n  \"timeoutSecs\": 3600\n}\n",
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        820,
+        1160
+      ],
+      "id": "07d1ea13-b0ab-4a51-8bec-30c6eba5583c",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "authentication": "nocoDbApiToken",
+        "operation": "create",
+        "workspaceId": "YOUR_WORKSPACE_ID",
+        "projectId": "YOUR_PROJECT_ID",
+        "table": "YOUR_TABLE_ID",
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.nocoDb",
+      "typeVersion": 3,
+      "position": [
+        1700,
+        1160
+      ],
+      "id": "2e3fcf58-e64b-4a7b-a0bd-4debbcc6d57b",
+      "name": "NocoDB3",
+      "credentials": {
+        "nocoDbApiToken": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "NocoDB Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        1160
+      ],
+      "id": "773b854a-af17-4689-ae06-b7278c53f5f8",
+      "name": "Remove Duplicates1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        660,
+        1160
+      ],
+      "id": "6b515079-9ad6-469d-80a3-b6c6bffdc754",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "content": "## Daily Scraper & Cleaner – ebay\n**This block runs on a daily schedule.\nIt scrapes apartment listings from ebay via Apify, removes already-processed URLs, and writes only the fresh listings to the NocoDB database.\n\n",
+        "height": 460,
+        "width": 1280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        600,
+        920
+      ],
+      "id": "cf78254b-f82f-433a-ad66-08a2c3fa574a",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9fc36c42-71af-4ad1-b72a-6b514bf34b40",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "a4f4f520-f210-494a-a028-587c620e3e42",
+              "name": "location",
+              "value": "={{ $json.location }}",
+              "type": "string"
+            },
+            {
+              "id": "0ff120ae-c114-4502-8e96-4cdccfe4969c",
+              "name": "rooms",
+              "value": "=null",
+              "type": "string"
+            },
+            {
+              "id": "3588d06b-1014-46a4-a79b-984d1756495c",
+              "name": "area",
+              "value": "=null\n",
+              "type": "string"
+            },
+            {
+              "id": "6b54e0ee-e6f4-4f0c-aba5-71a68cc01067",
+              "name": "price",
+              "value": "={{ \n  typeof $json.price === 'string' \n    ? Number($json.price.replace(/\\./g, '').replace(',', '.').replace(/[^\\d.]/g, '')) \n    : $json.price \n}}\n",
+              "type": "number"
+            },
+            {
+              "id": "9da174ab-6a72-4a4c-8951-08e278cffa7e",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "d8ad55a1-7d24-442a-9ae2-cc3f5e657766",
+              "name": "source",
+              "value": "ebay",
+              "type": "string"
+            },
+            {
+              "id": "fa424af8-18e4-4d93-9fef-2206e8e33c5d",
+              "name": "date_scraped",
+              "value": "={{ new Date().toISOString().split('T')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "3c9f83e8-d7c9-4c53-aae9-6cdaec52c0a9",
+              "name": "status",
+              "value": "Available",
+              "type": "string"
+            },
+            {
+              "id": "4c4cce3a-afb8-48df-a573-7fb14088404e",
+              "name": "description",
+              "value": "={{ $json.description }}",
+              "type": "string"
+            },
+            {
+              "id": "37c91c29-b9ab-47f6-97cd-4eaa3a1b09e6",
+              "name": "images",
+              "value": "={{ JSON.stringify($json.images) }}",
+              "type": "string"
+            },
+            {
+              "id": "f65d311f-8b24-4d2d-b8ad-d529fef61f46",
+              "name": "date_posted",
+              "value": "={{ $json.date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1400,
+        1160
+      ],
+      "id": "ee6f9f1f-1e01-4b5c-bd93-8e77362359b8",
+      "name": "Data map1"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actor-tasks/YOUR_ACTOR_TASK_ID/runs/last/dataset/items?token=YOUR_APIFY_TOKEN",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "YOUR_APIFY_TOKEN"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1240,
+        1160
+      ],
+      "id": "fed1c63b-b1a2-46ac-854c-b6b9a629117d",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1180,
+        1920
+      ],
+      "id": "28436621-0fe2-4691-bef0-a1cc8262c66e",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "CREDENTIALS_ID_PLACEHOLDER",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.user_id || $json.chat_id || \"elshan-session\" }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1400,
+        1920
+      ],
+      "id": "2911da3e-e8a9-48b2-97f4-394a9b8bc823",
+      "name": "Simple Memory1"
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "hours"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        1160
+      ],
+      "id": "14d59032-9b95-41cc-8b00-b9826ec10fc7",
+      "name": "Wait",
+      "webhookId": "WEBHOOK_ID_PLACEHOLDER"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Telegram Trigger').item.json.message.text }}\n\n",
+        "options": {
+          "systemMessage": "=You are a helpful Data Analyst assistant who is skilled at working with a database called NocoDB.\n\nyour tasks: \nYour task is to generate a NocoDB-compatible filter formula based on the user's message.\n- Filter and organize listings based on the user's search preferences (price, area, size, etc.).\n Example: (rooms,eq,2)~and(location,like,Mitte)~and(price,lt,1000). Important Rules: - Each condition must be inside parentheses.\n\nFilter Generation Rules:\n- If the user asks for \"today's listings\", \"listings today\", \"today apartments\", \"latest listings\", or similar:\n  - Generate a filter formula where (date_scraped,eq,Today_date). \n- if the user asks explicitly the last 5 or 10 results then ignore the filter formula instead - Fetch the latest 5 to 10 listings from the \n   database sorted by `date_scraped` or `CreatedAt` descending.\n  - Return these 5 to 10 most recent listings without any other filtering.\n\n- Otherwise:\n  - Generate a filter formula based on the user's search preferences (price, location, rooms, area, wbs_required, etc.).\n\nOutput:\n- A clean structured list of listings, each with:\n  - listing_url\n  - listing_description\n \nImportant:\n- No emotional or conversational text.\n- Only structured data in the output.\n- If a `description` field is available and it is too long (more than 400–500 words), summarize it naturally into a maximum of 2–3 short sentences.\nExample Output Format:\n[\n  {\n    \"listing_url\": \"https://example.com/listing1\",\n    \"listing_description\": \"3-room apartment, 85 sqm, €1200 rent, Mitte.\"\n  },\n  {\n    \"listing_url\": \"https://example.com/listing2\",\n    \"listing_description\": \"2-room renovated flat, balcony, €900 rent, Neukölln.\"\n  }\n]\n\nIf no listings match, return an empty list: `[]`\n\n\nHere are the column names for the table:\n{{ $json.columns }}\n\n\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        680,
+        1700
+      ],
+      "id": "a037981e-ac5a-4f6e-8c70-7e1f49ab2d11",
+      "name": "Data analyst"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Listings:\n{{ $json.output }}\n\nUser Message:\n{{ $(\"Telegram Trigger\").item.json.message.text }}\n\n\n",
+        "options": {
+          "systemMessage": "=You are a friendly and helpful Berlin housing assistant communicating with users via Telegram.\n\n---\n\n### Context:\n- You receive an `output` field containing a list of apartment listings. the first agent has already filterd the listing based on user search so you just need to present them all you recieve \n- Each listing includes:\n  - `listing_url`\n  - `listing_description`\n- You also receive a user message from Telegram.\n\nThe `output` is passed as a JSON string that needs to be parsed into a JSON array.\nEach entry inside the array represents one apartment listing.\n\n---\n\n### General Instructions:\n- **Parse the `output` JSON field correctly** as a list of listings.\n- Display absolutely **every listing** you receive, without skipping or omitting any.\n- Each listing should be formatted in a friendly, short way:\n  - A short title (e.g., 🏡 2-Room Flat in Mitte)\n  - 1-2 friendly sentences summarizing the apartment.\n  - Always add a clickable \"View Listing\" link.\n- Even if the list is long, show **all listings**.\n- Only if there are **no listings at all** (empty list), apologize politely and offer a new search.\n- Reply always in **English**, unless the user asks for another language.\n\n- **Important about cleaning the listing_description:**\n  - Sometimes, the `listing_description` field may contain unwanted HTML tags, CSS styles, or technical formatting.\n  - **Ignore and skip** any technical text like CSS (`font-size`, `color`, etc.), HTML tags (`<div>`, `<span>`, etc.), or boilerplate.\n  - Focus only on summarizing the real, human-readable apartment information (location, rooms, amenities, surroundings).\n  - If no valid human-readable information is found, say: \"No valid description available.\"\n\n---\n\n### Interaction Flow:\n\n#### 1. Showing Listings:\n- Parse and display all listings in a clean, friendly format.\n- After showing listings, always ask:\n  > \"Would you like to apply for one of these apartments? 😊\"\n\n#### 2. Handling Application Requests:\n- If the user says they want to apply (\"apply for the first one\", \"I want to apply\", etc.):\n  - Kindly ask:\n    > \"Great! Could you please write a few sentences about yourself (e.g., your profession, personality, rental preferences)? 😊\"\n\n#### 3. Writing the Application Letter:\n- When the user provides a self-description:\n  - Match the user's request to the correct listing:\n    - If \"first one\", pick the 1st listing.\n    - If \"second one\", pick the 2nd listing.\n    - If \"apply to [feature]\", intelligently match based on listing keywords.\n  - If unsure, **ask politely for clarification**.\n- Then:\n  - Write a **personalized application letter** based on:\n    - The user's self-description\n    - The matched apartment's `listing_description`\n  - The letter must sound sincere, polite, professional, and convincing.\n  - Length: about 6–8 sentences.\n  - Default to **formal English** unless another language is requested.\n  - Highlight:\n    - Why the user is a good fit.\n    - Any strengths (e.g., reliable, quiet, long-term tenant).\n\n#### 4. Handling Revisions:\n- If the user requests changes (\"make it more formal\", \"mention I have a German passport\"):\n  - Accept the feedback and revise the application letter accordingly.\n\n\n\n\nSpecial Notes:\n- Always prioritize listings from the `output`.\n- Never invent fake apartments.\n- Only show real listings received from the system.\n- Be friendly, human, and helpful.\n\n\n\n**Listing output:**  \n{{ $json.output }}\nuser message:\n{{ $('Telegram Trigger').item.json.message }}\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        1280,
+        1700
+      ],
+      "id": "7e582395-be95-4025-8533-e0fef8358ef8",
+      "name": "Writer",
+      "retryOnFail": true,
+      "maxTries": 5
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Data map",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB": {
+      "main": [
+        [
+          {
+            "node": "Table ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "extract columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract columns": {
+      "main": [
+        [
+          {
+            "node": "Clean data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Table ID": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Data analyst",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Data analyst",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NocoDB1": {
+      "ai_tool": [
+        [
+          {
+            "node": "Data analyst",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean data": {
+      "main": [
+        [
+          {
+            "node": "Data analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "NocoDB2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "NocoDB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data map": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates1": {
+      "main": [
+        [
+          {
+            "node": "NocoDB3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data map1": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Data map1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Writer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "Writer",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data analyst": {
+      "main": [
+        [
+          {
+            "node": "Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Writer": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "WORKFLOW_VERSION_ID",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "INSTANCE_ID"
+  },
+  "id": "WORKFLOW_ID",
+  "tags": []
+}
